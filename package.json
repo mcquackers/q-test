@@ -1,0 +1,25 @@
+{
+  "name": "generator-integrated-tests-mediamath",
+  "version": "0.1.1",
+  "description": "A generator to quickly build out integrated tests boilerplate",
+  "files": [
+    "test-buddies",
+    "test"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "yeoman-generator"
+  ],
+  "author": "Brian McQueen",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^2.3.1",
+    "factory_girl": "^0.2.1",
+    "mocha": "^2.2.5",
+    "selenium": "^2.20.0",
+    "yeoman-generator": "^0.20.1"
+  }
+}
