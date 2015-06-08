@@ -32,11 +32,23 @@ test.describe("q-test", function() {
     }).
     then(function() {
       return segmentBuddy.setAdvertiser(advertiserSearchKey);
-    }).then(function() {
-      return behaviorBuddy.addEventPixel("donna_confirm", advertiserSearchKey);
+    }).
+    then(function() {
+      return behaviorBuddy.addBehavior();
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(advertiserSearchKey);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem("Campaigns");
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(["can i?", "Donna Test for eBay"]);
     }).
     then(function() {
       console.log("done");
+    }, function(err) {
+      console.log(err);
     });
   })
 });

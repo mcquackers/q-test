@@ -124,11 +124,11 @@ segmentBuddy.exitSegment = function() {
 segmentBuddy.saveSegment = function() {
   var browser = segmentBuddy.browser;
   var webdriver = segmentBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
+  var saveSegmentPromise = new Promise(function(resolveSaveSegment, rejectSaveSegment) {
     browser.findElement(webdriver.By.id("save-segment-button")).click().then(function() {
-      resolve(true);
+      resolveSaveSegment(true);
     }, function(err) {
-      reject(err);
+      rejectSaveSegment(err);
     });
   });
   return promise;
@@ -137,13 +137,16 @@ segmentBuddy.saveSegment = function() {
 segmentBuddy.addSegment = function() {
   var browser = segmentBuddy.browser;
   var webdriver = segmentBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
-    browser.findElement(webdriver.By.id("add-segment")).then(function(element) {
-      element.click();
-      resolve(true);
+  var addSegmentPromise = new Promise(function(resolveAddSegment, rejectAddSegment) {
+    setTimeout(function() {
+    browser.findElement(webdriver.By.id("add-segment")).click().then(function() {
+      resolveAddSegment(true);
+    }, function(err) {
+      rejectAddSegment(err);
     });
+    }, 1000);
   });
-  return promise;
+  return addSegmentPromise;
 };
 
 segmentBuddy.newTestSegment = function(advertiserName, segmentName) {

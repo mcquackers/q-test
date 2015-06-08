@@ -24,21 +24,18 @@ behaviorBuddy.selectItem = function(stringToSelect) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
   var selectItemPromise = new Promise(function(resolveSelectItem, rejectSelectItem) {
-    console.log("In Select Item");
-      setTimeout(function() {
-    browser.findElements(webdriver.By.className("name")).then(function(elements) {
+    setTimeout(function() {
+      browser.findElements(webdriver.By.className("name")).then(function(elements) {
         var asyncCatcher = 0;
         for(var i = 0; i < elements.length; i++) {
           elements[i].getText().then(function(text) {
             if(text == stringToSelect) {
               elements[asyncCatcher].click().then(function() {
-                console.log("Resolving");
                 resolveSelectItem(true);
               }, function(err) {
                 rejectSelectItem(err);
               });
             } else if(asyncCatcher == elements.length) {
-              console.log("Rejecting");
               rejectSelectItem(new Error("Item not found"));
             }
             asyncCatcher++;
@@ -53,9 +50,10 @@ behaviorBuddy.selectItem = function(stringToSelect) {
 behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
-    browser.findElements(webdriver.By.className(behaviorBuddy.ITEM_CLASS_NAME)).then(function(elements) {
-      setTimeout(function () {
+  var selectItemsPromise = new Promise(function(resolveSelectItems, rejectSelectItems) {
+    setTimeout(function() {
+      browser.findElements(webdriver.By.className(behaviorBuddy.ITEM_CLASS_NAME)).then(function(elements) {
+        console.log(elements.length);
         var asyncCatcher = 0;
         for(var i = 0; i < elements.length; i++) {
           elements[i].getText().then(function(text) {
@@ -64,14 +62,14 @@ behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
             }
             asyncCatcher++;
             if(asyncCatcher == elements.length){
-              resolve(true);
+              resolveSelectItems(true);
             }
           });
         }
-      }, 1500);
-    });
+      });
+    }, 1500);
   });
-  return promise;
+  return selectItemsPromise;
 };
 
 behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors, elements) {
@@ -205,106 +203,143 @@ behaviorBuddy.addEventPixels = function(arrayOfPixelsToAdd, advertiserName) {
 behaviorBuddy.addCampaignClick = function(campaignName, strategyName, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(campaignName);
-  }, 4500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(strategyName);
-  }, 6500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.CLICK);
-  }, 8500);
-  setTimeout(function() {
-    behaviorBuddy.saveBehavior();
-  }, 10500);
+  var addClickPromise = new Promise(function(resolveAddClick, rejectAddClick) {
+    behaviorBuddy.addBehavior().
+      then(function() {
+        return behaviorBuddy.selectItem(advertiserName);
+      }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(campaignName);
+    }).
+    then(function() {
+      behaviorBuddy.selectItem(strategyName);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.CLICK);
+    }).
+    then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).
+    then(function() {
+      resolveAddClick(true);
+    }, function(err) {
+      rejectAddClick(err);
+    });
+  });
+  return addClickPromise;
 };
 
 behaviorBuddy.addCampaignImpression = function(campaignName, strategyName, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(campaignName);
-  }, 4500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(strategyName);
-  }, 6500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.IMPRESSION);
-  }, 8500);
-  setTimeout(function() {
-    behaviorBuddy.saveBehavior();
-  }, 10500);
+  var addImpressionPromise = new Promise(function(resolveAddImpression, rejectAddImpression) {
+    behaviorBuddy.addBehavior().
+      then(function() {
+        return behaviorBuddy.selectItem(advertiserName);
+      }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(campaignName);
+    }).
+    then(function() {
+      behaviorBuddy.selectItem(strategyName);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.IMPRESSION);
+    }).
+    then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).
+    then(function() {
+      resolveAddImpresion(true);
+    }, function(err) {
+      rejectAddImpression(err);
+    });
+  });
+  return addImpressionPromise;
 };
 
 behaviorBuddy.addCampaignImpressions = function(arrayOfCampaignNames, arrayOfStrategyNames, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItems(arrayOfCampaignNames);
-  }, 4500);
-  setTimeout(function() {
-    behaviorBuddy.selectItems(arrayOfStrategyNames);
-  }, 7000);
-  setTimeout(function () {
-    behaviorBuddy.selectItems(behaviorBuddy.IMPRESSION);
-  }, 9000);
-  setTimeout(function() {
-    behaviorBuddy.saveBehavior();
-  }, 11500);
+  var addImpressionsPromise = new Promise(function(resolveAddImpressions, rejectAddImpressions) {
+    behaviorBuddy.addBehavior().
+      then(function() {
+        return behaviorBuddy.selectItem(advertiserName);
+      }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(arrayOfCampaignNames);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(arrayOfStrategyNames);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(behaviorBuddy.IMPRESSION);
+    }).
+    then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).
+    then(function() {
+      resolveAddImpressions(true);
+    }, function(err) {
+      rejectAddImpressions(true);
+    });
+  });
+  return addImpressionsPromise;
 };
 
 behaviorBuddy.addCampaignClicks = function(arrayOfCampaignNames, arrayOfStrategyNames, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItems(arrayOfCampaignNames);
-  }, 4500);
-  setTimeout(function() {
-    behaviorBuddy.selectItems(arrayOfStrategyNames);
-  }, 7000);
-  setTimeout(function () {
-    behaviorBuddy.selectItems(behaviorBuddy.CLICK);
-  }, 9000);
-  setTimeout(function() {
-    behaviorBuddy.saveBehavior();
-  }, 11500);
+  var addClicksPromise = new Promise(function(resolveAddClicks, rejectAddClicks) {
+    behaviorBuddy.addBehavior().
+      then(function() {
+        return behaviorBuddy.selectItem(advertiserName);
+      }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.CAMPAIGNS);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(arrayOfCampaignNames);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(arrayOfStrategyNames);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(behaviorBuddy.CLICK);
+    }).then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).then(function() {
+      resolveAddClicks(true);
+    }, function(err) {
+      rejectAddClicks(err);
+    });
+  });
+  return addClicksPromise;
 };
 
 
 behaviorBuddy.saveBehavior = function() {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  browser.findElement(webdriver.By.id("add-button")).click();
-  // var saveBehaviorPromise = new Promise(function(resolveSaveBehavior, rejectSaveBehavior) {
-  //   browser.findElement(webdriver.By.id("add-button")).then(function(element) {
-  //     console.log(element);
-  //     element.click();
-  //     resolveSaveBehavior(true);
-  //   }, function(err) {
-  //     rejectSaveBehavior(err);
-  //   });
-  // });
-  // return saveBehaviorPromise;
+  var saveBehaviorPromise = new Promise(function(resolveSaveBehavior, rejectSaveBehavior) {
+    setTimeout(function() {
+      browser.findElement(webdriver.By.id("add-button")).click().then(function() {
+        resolveSaveBehavior(true);
+      }, function(err) {
+        rejectSaveBehavior(err);
+      });
+    }, 1000);
+  });
+  return saveBehaviorPromise;
 };
 
 module.exports = behaviorBuddy;
