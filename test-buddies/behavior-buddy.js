@@ -24,28 +24,30 @@ behaviorBuddy.selectItem = function(stringToSelect) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
   var selectItemPromise = new Promise(function(resolveSelectItem, rejectSelectItem) {
-    browser.findElements(webdriver.By.className("name")).then(function(elements) {
+    console.log("In Select Item");
       setTimeout(function() {
+    browser.findElements(webdriver.By.className("name")).then(function(elements) {
         var asyncCatcher = 0;
         for(var i = 0; i < elements.length; i++) {
           elements[i].getText().then(function(text) {
             if(text == stringToSelect) {
               elements[asyncCatcher].click().then(function() {
+                console.log("Resolving");
                 resolveSelectItem(true);
               }, function(err) {
                 rejectSelectItem(err);
               });
+            } else if(asyncCatcher == elements.length) {
+              console.log("Rejecting");
+              rejectSelectItem(new Error("Item not found"));
             }
             asyncCatcher++;
-            if(asyncCatcher == elements.length) {
-              reject(new Error("Item not found"));
-            }
           });
         }
-      }, 1500);
-    });
+      });
+    }, 1500);
   });
-  return promise;
+  return selectItemPromise;
 };
 
 behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
@@ -75,7 +77,7 @@ behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
 behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors, elements) {
   var DEFAULT_BLANKS = 2;
   var segmentBehaviors = [];
-  var promise = new Promise(function(resolve, reject) {
+  var allBehaviorsAddedPromise = new Promise(function(resolveAllBehaviorsAdded, rejectAllBehaviorsAdded) {
     for(var i = 0; i < elements.length - DEFAULT_BLANKS; i++) {
       elements[i].getText().then(function(text) {
         var index = text.indexOf("\n");
@@ -85,34 +87,37 @@ behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors, elements) {
     }
     setTimeout(function() {
       if(arraysIdentical(segmentBehaviors, arrayOfExpectedBehaviors)) {
-        resolve(true);
+        resolveAllBehaviorsAdded(true);
       } else {
-        reject(new Error("Not all behaviors added"));
+        rejectAllBehaviorsAdded(new Error("Not all behaviors added"));
       }
     }, 1000);
   });
-  return promise;
+  return allBehaviorsAddedPromise;
 };
 
 behaviorBuddy.editBehavior = function(behaviorToEdit) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
   var asyncCatcher = 0;
-  var promise = new Promise(function(resolve, reject) {
+  var editBehaviorPromise = new Promise(function(resolveEditBehavior, rejectEditBehavior) {
     browser.findElements(webdriver.By.className("segment-element")).then(function(elements) {
       for(var i = 0; i < elements.length; i++) {
         elements[i].getAttribute("title").then(function(title) {
           if(title.indexOf(behaviorToEdit)>=0) {
             elements[asyncCatcher].findElement(webdriver.By.className("edit-control")).click().then(function() {
-              resolve(true);
+              resolveEditBehavior(true);
             });
           }
           asyncCatcher++;
+          if(asyncCatcher == elements.length) {
+            rejectEditBehavior(new Error("Something went wrong :("));
+          }
         });
       }
     });
   });
-  return promise;
+  return editBehaviorPromise;
 };
 
 behaviorBuddy.selectFromDropdown = function (dropdown, stringToSelect) {
@@ -143,12 +148,13 @@ behaviorBuddy.addBehavior = function() {
   var webdriver = behaviorBuddy.webdriver;
   var addBehaviorPromise = new Promise(function(resolveAddBehavior, rejectAddBehavior) {
     setTimeout(function() {
-      behaviorBuddy.browser.findElement(webdriver.By.className("add-behavior-text")).click().then(function() {
-      resolveAddBehavior(true);
+      browser.findElement(webdriver.By.className("add-behavior-text")).click().then(function() {
+        resolveAddBehavior(true);
       }, function(err) {
+        console.log(err);
         rejectAddBehavior(err);
       });
-    }, 500);
+    }, 1500);
   });
   return addBehaviorPromise;
 };
@@ -157,14 +163,25 @@ behaviorBuddy.addEventPixel = function(pixelToAdd, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
   var addEventPixelPromise = new Promise(function(resolveAddEventPixel, rejectAddEventPixel) {
-    behaviorBuddy.addBehavior().
-      then(behaviorBuddy.selectItem(advertiserName)).
-      then(behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS)).
-      then(behaviorBuddy.selectItem(pixelToAdd)).
-      then(browserBuddy.saveBehavior()).
-      then(function() {
-        resolveAddEventPixel(true);
-      });
+    console.log("In addEventPixel");
+    behaviorBuddy.addBehavior().then(function() {
+      return behaviorBuddy.selectItem(advertiserName);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS);
+    }).
+    then(function() {
+      console.log("Look for pixel");
+      return behaviorBuddy.selectItem(pixelToAdd);
+    }).
+    then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).
+    then(function() {
+      resolveAddEventPixel(true);
+    }, function(err) {
+      rejectAddEventPixel(err);
+    });
   });
   return addEventPixelPromise;
 };
@@ -277,14 +294,17 @@ behaviorBuddy.addCampaignClicks = function(arrayOfCampaignNames, arrayOfStrategy
 behaviorBuddy.saveBehavior = function() {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  var saveBehaviorPromise = new Promise(function(resolveSaveBehavior, rejectSaveBehavior) {
-    browser.findElement(webdriver.By.id("add-button")).click().then(function() {
-      resolveSaveBehavior(true);
-    }, function(err) {
-      rejectSaveBehavior(err);
-    });
-  });
-  return saveBehaviorPromise;
+  browser.findElement(webdriver.By.id("add-button")).click();
+  // var saveBehaviorPromise = new Promise(function(resolveSaveBehavior, rejectSaveBehavior) {
+  //   browser.findElement(webdriver.By.id("add-button")).then(function(element) {
+  //     console.log(element);
+  //     element.click();
+  //     resolveSaveBehavior(true);
+  //   }, function(err) {
+  //     rejectSaveBehavior(err);
+  //   });
+  // });
+  // return saveBehaviorPromise;
 };
 
 module.exports = behaviorBuddy;

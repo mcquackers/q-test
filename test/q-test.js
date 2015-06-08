@@ -30,13 +30,13 @@ test.describe("q-test", function() {
     segmentBuddy.addSegment().then(function() {
       return segmentBuddy.setSegmentName(segmentName);
     }).
-      then(function() {
-        return segmentBuddy.setAdvertiser(advertiserSearchKey);
-      }).then(function() {
-        return behaviorBuddy.addBehavior();
-      }).
-      then(function() {
-        return behaviorBuddy.selectItem(advertiserSearchKey);
-      });
+    then(function() {
+      return segmentBuddy.setAdvertiser(advertiserSearchKey);
+    }).then(function() {
+      return behaviorBuddy.addEventPixel("donna_confirm", advertiserSearchKey);
+    }).
+    then(function() {
+      console.log("done");
+    });
   })
 });
