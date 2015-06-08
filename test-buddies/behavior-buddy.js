@@ -23,7 +23,7 @@ behaviorBuddy.initialize = function(browser, webdriver) {
 behaviorBuddy.selectItem = function(stringToSelect) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
+  var selectItemPromise = new Promise(function(resolveSelectItem, rejectSelectItem) {
     browser.findElements(webdriver.By.className("name")).then(function(elements) {
       setTimeout(function() {
         var asyncCatcher = 0;
@@ -31,12 +31,15 @@ behaviorBuddy.selectItem = function(stringToSelect) {
           elements[i].getText().then(function(text) {
             if(text == stringToSelect) {
               elements[asyncCatcher].click().then(function() {
-                resolve(true);
+                resolveSelectItem(true);
               }, function(err) {
-                reject(err);
+                rejectSelectItem(err);
               });
             }
             asyncCatcher++;
+            if(asyncCatcher == elements.length) {
+              reject(new Error("Item not found"));
+            }
           });
         }
       }, 1500);
@@ -138,28 +141,32 @@ behaviorBuddy.selectFromDropdown = function (dropdown, stringToSelect) {
 behaviorBuddy.addBehavior = function() {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
-    behaviorBuddy.browser.findElement(webdriver.By.className("add-behavior-text")).click();
-    console.log("third");
-    resolve(true);
-    });
-  return promise;
+  var addBehaviorPromise = new Promise(function(resolveAddBehavior, rejectAddBehavior) {
+    setTimeout(function() {
+      behaviorBuddy.browser.findElement(webdriver.By.className("add-behavior-text")).click().then(function() {
+      resolveAddBehavior(true);
+      }, function(err) {
+        rejectAddBehavior(err);
+      });
+    }, 500);
+  });
+  return addBehaviorPromise;
 };
 
 behaviorBuddy.addEventPixel = function(pixelToAdd, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(pixelToAdd);
-  }, 4500);
-  setTimeout(function() {
-    browserBuddy.saveBehavior();
-  }, 7000);
+  var addEventPixelPromise = new Promise(function(resolveAddEventPixel, rejectAddEventPixel) {
+    behaviorBuddy.addBehavior().
+      then(behaviorBuddy.selectItem(advertiserName)).
+      then(behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS)).
+      then(behaviorBuddy.selectItem(pixelToAdd)).
+      then(browserBuddy.saveBehavior()).
+      then(function() {
+        resolveAddEventPixel(true);
+      });
+  });
+  return addEventPixelPromise;
 };
 
 behaviorBuddy.addEventPixels = function(arrayOfPixelsToAdd, advertiserName) {
@@ -270,7 +277,14 @@ behaviorBuddy.addCampaignClicks = function(arrayOfCampaignNames, arrayOfStrategy
 behaviorBuddy.saveBehavior = function() {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  browser.findElement(webdriver.By.id("add-button")).click();
+  var saveBehaviorPromise = new Promise(function(resolveSaveBehavior, rejectSaveBehavior) {
+    browser.findElement(webdriver.By.id("add-button")).click().then(function() {
+      resolveSaveBehavior(true);
+    }, function(err) {
+      rejectSaveBehavior(err);
+    });
+  });
+  return saveBehaviorPromise;
 };
 
 module.exports = behaviorBuddy;

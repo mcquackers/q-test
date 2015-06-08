@@ -36,7 +36,7 @@ test.describe("q-test", function() {
         return behaviorBuddy.addBehavior();
       }).
       then(function() {
-        console.log("done");
+        return behaviorBuddy.selectItem(advertiserSearchKey);
       });
   })
 });

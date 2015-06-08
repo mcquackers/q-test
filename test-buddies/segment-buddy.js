@@ -27,38 +27,37 @@ segmentBuddy.setAdvertiser = function(advertiserName) {
   var browser = segmentBuddy.browser;
   var webdriver = segmentBuddy.webdriver;
   var elementHold;
-  browser.findElement(webdriver.By.xpath("//*[@id='advertisers']")).
+  var promise = new Promise(function(resolveParent, reject) {
+    browser.findElement(webdriver.By.xpath("//*[@id='advertisers']")).
+      then(function(element) {
+        var openDropdownPromise = new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            element.click().then(function() {
+              resolve(true);
+            }, function(err) {
+              reject(err);
+            });
+          }, 1500);
+        });
+        return openDropdownPromise;
+      }).then(function() {
+        return browser.findElement(webdriver.By.xpath("//*[@id='advertisers']/mm-input"));
+      }).
     then(function(element) {
-      var promise = new Promise(function(resolve, reject) {
-        setTimeout(function() {
-          element.click().then(function() {
-            console.log("second");
-            resolve(true);
-          }, function(err) {
-            reject(err);
-          });
-        }, 1500);
-      });
-      return promise;
-    }).then(function() {
-      return browser.findElement(webdriver.By.xpath("//*[@id='advertisers']/mm-input"));
+      elementHold = element;
+      return element.click();
     }).
-  then(function(element) {
-    elementHold = element;
-    return element.click();
-  }).
-  then(function() {
-    var promise = new Promise(function(resolve, reject) {
-      setTimeout(function() {
-        elementHold.sendKeys(advertiserName);
-        resolve(true);
-      }, 1000);
-    });
-    return promise;
-  }, function(err) {
-    console.log(err);
-  }).then(function() {
-    var promise = new Promise(function(resolve, reject) {
+    then(function() {
+      var sendSearchKeyPromise = new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          elementHold.sendKeys(advertiserName);
+          resolve(true);
+        }, 1000);
+      });
+      return sendSearchKeyPromise;
+    }, function(err) {
+      console.log(err);
+    }).then(function() {
       setTimeout(function() {
         browser.findElements(webdriver.By.xpath("//*[@id='advertisers']/mm-list-item")).then(function(elements) {
           var asyncCatcher = 0;
@@ -66,7 +65,8 @@ segmentBuddy.setAdvertiser = function(advertiserName) {
             elements[i].getText().then(function(text) {
               if(text == advertiserName) {
                 elements[asyncCatcher].click();
-                resolve(true);
+                console.log("two");
+                resolveParent(true);
               } else if(asyncCatcher == elements.length) {
                 reject(new Error("The advertiser Search key could not be found in the list"));
               } else {
@@ -77,8 +77,8 @@ segmentBuddy.setAdvertiser = function(advertiserName) {
         });
       }, 1000);
     });
-    return promise;
   });
+  return promise;
 };
 
 segmentBuddy.getSegmentSize = function () {
