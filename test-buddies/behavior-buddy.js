@@ -135,12 +135,11 @@ behaviorBuddy.selectFromDropdown = function (dropdown, stringToSelect) {
             dropdown.findElements(webdriver.By.css(" * ")).then(function(elements) {
               resolveFindElements(elements);
             });
-          }, 1000);
+          }, 1500);
         });
         return findElementsPromise;
       }).
     then(function(elements) {
-      console.log(elements);
       var asyncCatcher = 0;
       for(var i = 0;i < elements.length; i++) {
         elements[i].getText().then(function(text) {
