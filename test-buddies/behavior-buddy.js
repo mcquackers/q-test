@@ -53,7 +53,6 @@ behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
   var selectItemsPromise = new Promise(function(resolveSelectItems, rejectSelectItems) {
     setTimeout(function() {
       browser.findElements(webdriver.By.className(behaviorBuddy.ITEM_CLASS_NAME)).then(function(elements) {
-        console.log(elements.length);
         var asyncCatcher = 0;
         for(var i = 0; i < elements.length; i++) {
           elements[i].getText().then(function(text) {
@@ -72,15 +71,22 @@ behaviorBuddy.selectItems = function(arrayOfStringsToBeSelected) {
   return selectItemsPromise;
 };
 
-behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors, elements) {
+behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors) {
+  var browser = behaviorBuddy.browser;
+  var webdriver = behaviorBuddy.webdriver;
   var DEFAULT_BLANKS = 2;
   var segmentBehaviors = [];
   var allBehaviorsAddedPromise = new Promise(function(resolveAllBehaviorsAdded, rejectAllBehaviorsAdded) {
+    browser.findElements(webdriver.By.className("segment-element")).then(function(elements) {
     for(var i = 0; i < elements.length - DEFAULT_BLANKS; i++) {
       elements[i].getText().then(function(text) {
-        var index = text.indexOf("\n");
-        var pixelNameSubstring = text.substring(index+1);
-        segmentBehaviors.push(pixelNameSubstring);
+        var indexNewlineRaw = text.indexOf("\n");
+        var segmentElementText = text.substring(indexNewlineRaw+1);
+        var indexNewlineText = segmentElementText.indexOf("\n");
+        var pixelNameSubstring = segmentElementText.substring(indexNewlineText+1);
+        if(arrayOfExpectedBehaviors.indexOf(pixelNameSubstring)>=0){
+          segmentBehaviors.push(pixelNameSubstring);
+        }
       });
     }
     setTimeout(function() {
@@ -90,6 +96,7 @@ behaviorBuddy.allBehaviorsAdded = function(arrayOfExpectedBehaviors, elements) {
         rejectAllBehaviorsAdded(new Error("Not all behaviors added"));
       }
     }, 1000);
+  });
   });
   return allBehaviorsAddedPromise;
 };
@@ -187,17 +194,26 @@ behaviorBuddy.addEventPixel = function(pixelToAdd, advertiserName) {
 behaviorBuddy.addEventPixels = function(arrayOfPixelsToAdd, advertiserName) {
   var browser = behaviorBuddy.browser;
   var webdriver = behaviorBuddy.webdriver;
-  behaviorBuddy.addBehavior();
-  behaviorBuddy.selectItem(advertiserName);
-  setTimeout(function() {
-    behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS);
-  }, 2500);
-  setTimeout(function() {
-    behaviorBuddy.selectItems(arrayOfPixelsToAdd);
-  }, 4500);
-  setTimeout(function() {
-    behaviorBuddy.saveBehavior();
-  }, 7000);
+  var addPixelsPromise = new Promise(function(resolveAddPixels, rejectAddPixels) {
+    behaviorBuddy.addBehavior().then(function() {
+      return behaviorBuddy.selectItem(advertiserName);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItem(behaviorBuddy.EVENT_PIXELS);
+    }).
+    then(function() {
+      return behaviorBuddy.selectItems(arrayOfPixelsToAdd);
+    }).
+    then(function() {
+      return behaviorBuddy.saveBehavior();
+    }).
+    then(function() {
+      resolveAddPixels(true);
+    }, function(err) {
+      rejectAddPixels(err);
+    });
+  });
+  return addPixelsPromise;
 };
 
 behaviorBuddy.addCampaignClick = function(campaignName, strategyName, advertiserName) {
@@ -256,8 +272,10 @@ behaviorBuddy.addCampaignImpression = function(campaignName, strategyName, adver
       return behaviorBuddy.saveBehavior();
     }).
     then(function() {
-      resolveAddImpresion(true);
+      console.log("Resolving addCampaignImpression");
+      resolveAddImpression(true);
     }, function(err) {
+      console.log("Rejecting addCampaignImpression");
       rejectAddImpression(err);
     });
   });

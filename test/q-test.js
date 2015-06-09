@@ -10,7 +10,7 @@ var loginBuddy;
 var behaviorBuddy;
 var segmentBuddy;
 // SET THESE VARIABLES BEFORE TESTING
-var pixelsToSelect = [];
+var pixelsToSelect = ["donna_confirm", "donna_thankyou"];
 
 test.describe("q-test", function() {
   test.before("Open browser and login", function(done) {
@@ -27,23 +27,12 @@ test.describe("q-test", function() {
   })
 
   test.it("begin test steps here", function(done) {
-    segmentBuddy.addSegment().then(function() {
-      return segmentBuddy.setSegmentName(segmentName);
-    }).
+    segmentBuddy.newTestSegment(advertiserSearchKey, segmentName).
+      then(function() {
+        return behaviorBuddy.addEventPixels(pixelsToSelect, advertiserSearchKey);
+      }).
     then(function() {
-      return segmentBuddy.setAdvertiser(advertiserSearchKey);
-    }).
-    then(function() {
-      return behaviorBuddy.addBehavior();
-    }).
-    then(function() {
-      return behaviorBuddy.selectItem(advertiserSearchKey);
-    }).
-    then(function() {
-      return behaviorBuddy.selectItem("Campaigns");
-    }).
-    then(function() {
-      return behaviorBuddy.selectItems(["can i?", "Donna Test for eBay"]);
+      return behaviorBuddy.allBehaviorsAdded(pixelsToSelect);
     }).
     then(function() {
       console.log("done");
