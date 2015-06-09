@@ -35,6 +35,26 @@ test.describe("q-test", function() {
       return behaviorBuddy.allBehaviorsAdded(pixelsToSelect);
     }).
     then(function() {
+      return behaviorBuddy.editBehavior("donna_thankyou");
+    }).
+    then(function() {
+      return browser.findElement(webdriver.By.id("add-event-filter"));
+    }).
+    then(function(element) {
+      var promise = new Promise(function(resolve, reject) {
+        element.click().then(function() {
+          resolve(true);
+        });
+      });
+      return promise;
+    }).
+    then(function() {
+      return browser.findElement(webdriver.By.className("attribute-options"));
+    }).
+    then(function(element) {
+      return behaviorBuddy.selectFromDropdown(element, "Connection Speed");
+    }).
+    then(function() {
       console.log("done");
     }, function(err) {
       console.log(err);

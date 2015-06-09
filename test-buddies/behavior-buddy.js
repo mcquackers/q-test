@@ -127,25 +127,37 @@ behaviorBuddy.editBehavior = function(behaviorToEdit) {
 
 behaviorBuddy.selectFromDropdown = function (dropdown, stringToSelect) {
   var webdriver = behaviorBuddy.webdriver;
-  var promise = new Promise(function(resolve, reject) {
-    dropdown.click().then(dropdown.findElements(webdriver.By.css(" * "))).then(function(elements) {
+  var selectDropdownPromise = new Promise(function(resolveSelect, rejectSelect) {
+    dropdown.click().
+      then(function() {
+        var findElementsPromise = new Promise(function(resolveFindElements, rejectFindElements) {
+          setTimeout(function() {
+            dropdown.findElements(webdriver.By.css(" * ")).then(function(elements) {
+              resolveFindElements(elements);
+            });
+          }, 1000);
+        });
+        return findElementsPromise;
+      }).
+    then(function(elements) {
+      console.log(elements);
       var asyncCatcher = 0;
       for(var i = 0;i < elements.length; i++) {
         elements[i].getText().then(function(text) {
           if(text == stringToSelect){
             elements[asyncCatcher].click().then(function() {
-              resolve(true);
+              resolveSelect(true);
             });
           }
           asyncCatcher++;
           if(asyncCatcher == elements.length) {
-            reject(new Error("Not found in list"));
+            rejectSelect(new Error("Not found in list"));
           }
         });
       }
     });
   });
-  return promise;
+  return selectDropdownPromise;
 };
 
 behaviorBuddy.addBehavior = function() {
